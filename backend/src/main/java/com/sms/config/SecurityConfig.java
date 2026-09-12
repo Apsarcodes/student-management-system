@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -30,6 +32,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsServiceImpl userDetailsService;
+
 
     public SecurityConfig(
             JwtAuthFilter jwtAuthFilter,
@@ -39,16 +42,21 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
+
     /**
-     * Password encoder used for user authentication.
+     * BCrypt password encoder.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 
+
     /**
-     * Authentication provider using our custom UserDetailsService
+     * Authentication provider.
+     *
+     * Uses the application's UserDetailsService
      * and BCrypt password encoder.
      */
     @Bean
@@ -63,8 +71,9 @@ public class SecurityConfig {
         return authProvider;
     }
 
+
     /**
-     * Authentication manager used by the authentication service.
+     * Authentication manager.
      */
     @Bean
     public AuthenticationManager authenticationManager(
@@ -73,46 +82,98 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
+
     /**
-     * Main Spring Security configuration.
+     * Spring Security filter chain.
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain filterChain(
+            HttpSecurity http) throws Exception {
 
         http
-                // JWT authentication is stateless, so CSRF is disabled.
+
+                /*
+                 * ---------------------------------------------------------
+                 * CSRF
+                 * ---------------------------------------------------------
+                 *
+                 * This application uses JWT authentication and is
+                 * stateless, so CSRF protection is disabled.
+                 */
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Enable Spring Security CORS handling.
-                .cors(AbstractHttpConfigurer::withDefaults)
 
-                // Do not create HTTP sessions.
+                /*
+                 * ---------------------------------------------------------
+                 * CORS
+                 * ---------------------------------------------------------
+                 *
+                 * Enables Spring Security's CORS integration.
+                 *
+                 * Your CORS configuration is handled separately
+                 * by the application's WebConfig/CorsConfiguration.
+                 */
+                .cors(Customizer.withDefaults())
+
+
+                /*
+                 * ---------------------------------------------------------
+                 * SESSION MANAGEMENT
+                 * ---------------------------------------------------------
+                 *
+                 * JWT authentication does not use HTTP sessions.
+                 */
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-                // Allow H2 console iframe rendering.
+
+                /*
+                 * ---------------------------------------------------------
+                 * HEADERS
+                 * ---------------------------------------------------------
+                 *
+                 * Required for the H2 console iframe.
+                 */
                 .headers(headers ->
                         headers.frameOptions(
                                 HeadersConfigurer.FrameOptionsConfig::disable
                         )
                 )
 
-                // Authorization rules.
+
+                /*
+                 * ---------------------------------------------------------
+                 * AUTHORIZATION
+                 * ---------------------------------------------------------
+                 */
                 .authorizeHttpRequests(auth -> auth
 
-                        // IMPORTANT:
-                        // Allow browser CORS preflight requests.
-                        // This fixes OPTIONS /api/dashboard/stats → 403.
+
+                        /*
+                         * -------------------------------------------------
+                         * CORS PREFLIGHT
+                         * -------------------------------------------------
+                         *
+                         * Browsers send OPTIONS requests before certain
+                         * cross-origin API requests.
+                         *
+                         * Without this rule Spring Security can return
+                         * 403 before the actual API request is made.
+                         */
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
 
-                        // Public authentication endpoints.
+
+                        /*
+                         * -------------------------------------------------
+                         * PUBLIC AUTHENTICATION ENDPOINTS
+                         * -------------------------------------------------
+                         */
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/logout",
@@ -120,29 +181,69 @@ public class SecurityConfig {
                                 "/api/auth/departments"
                         ).permitAll()
 
-                        // H2 database console.
+
+                        /*
+                         * -------------------------------------------------
+                         * H2 CONSOLE
+                         * -------------------------------------------------
+                         */
                         .requestMatchers(
                                 "/h2-console/**"
                         ).permitAll()
 
-                        // Admin-only user management.
+
+                        /*
+                         * -------------------------------------------------
+                         * ADMIN USER MANAGEMENT
+                         * -------------------------------------------------
+                         */
                         .requestMatchers(
                                 "/api/users/**"
                         ).hasRole("ADMIN")
 
-                        // All remaining API endpoints require authentication.
+
+                        /*
+                         * -------------------------------------------------
+                         * ALL OTHER ENDPOINTS
+                         * -------------------------------------------------
+                         *
+                         * Dashboard, students, departments, courses,
+                         * subjects, attendance, marks, reports, etc.
+                         * require a valid JWT.
+                         */
                         .anyRequest().authenticated()
                 );
 
-        // Register our DAO authentication provider.
-        http.authenticationProvider(authenticationProvider());
 
-        // Run JWT authentication before Spring's username/password filter.
+        /*
+         * -------------------------------------------------------------
+         * AUTHENTICATION PROVIDER
+         * -------------------------------------------------------------
+         */
+        http.authenticationProvider(
+                authenticationProvider()
+        );
+
+
+        /*
+         * -------------------------------------------------------------
+         * JWT AUTHENTICATION FILTER
+         * -------------------------------------------------------------
+         *
+         * Runs the JWT filter before Spring Security's standard
+         * username/password authentication filter.
+         */
         http.addFilterBefore(
                 jwtAuthFilter,
                 UsernamePasswordAuthenticationFilter.class
         );
 
+
+        /*
+         * -------------------------------------------------------------
+         * BUILD SECURITY FILTER CHAIN
+         * -------------------------------------------------------------
+         */
         return http.build();
     }
 }
