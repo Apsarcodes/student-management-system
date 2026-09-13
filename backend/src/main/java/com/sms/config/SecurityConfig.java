@@ -102,6 +102,7 @@ public class SecurityConfig {
                  */
                 .csrf(AbstractHttpConfigurer::disable)
 
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
                 /*
                  * ---------------------------------------------------------
