@@ -39,13 +39,13 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         authService.forgotPassword(request.getEmail());
         return ResponseEntity.ok(ApiResponse.success("If an account exists for that email, a reset code has been sent."));
     }
 
     @PostMapping("/resend-otp")
-    public ResponseEntity<ApiResponse<Void>> resendOtp(
+    public ResponseEntity<ApiResponse<String>> resendOtp(
             @RequestParam String purpose,
             @Valid @RequestBody ForgotPasswordRequest request
     ) {
@@ -60,7 +60,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request.getEmail(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success("Password reset successful. Please log in with your new password."));
     }
