@@ -2,6 +2,17 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+const clearAuthStorage = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+};
+
+const getStoredToken = () => {
+  return localStorage.getItem('token') || sessionStorage.getItem('token');
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -12,7 +23,7 @@ const api = axios.create({
 // Request interceptor: automatically attach JWT Bearer token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = getStoredToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,8 +41,7 @@ api.interceptors.response.use(
     const publicPaths = ['/login', '/register', '/unauthorized'];
 
     if (status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearAuthStorage();
       if (!publicPaths.includes(currentPath)) {
         window.location.href = '/login';
       }

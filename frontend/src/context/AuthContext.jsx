@@ -3,15 +3,62 @@ import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
+const clearStoredAuth = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+};
+
+const getStoredAuth = () => {
+  const localToken = localStorage.getItem('token');
+  const sessionToken = sessionStorage.getItem('token');
+  const localUser = localStorage.getItem('user');
+  const sessionUser = sessionStorage.getItem('user');
+
+  return {
+    token: localToken || sessionToken,
+    user: localUser || sessionUser,
+  };
+};
+
+const persistAuth = (jwtToken, userData, rememberMe = true) => {
+  if (rememberMe) {
+    localStorage.setItem('token', jwtToken);
+    localStorage.setItem('user', JSON.stringify(userData));
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    return;
+  }
+
+  sessionStorage.setItem('token', jwtToken);
+  sessionStorage.setItem('user', JSON.stringify(userData));
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+};
+
+const persistUserOnly = (updatedUser) => {
+  if (localStorage.getItem('token')) {
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    return;
+  }
+
+  if (sessionStorage.getItem('token')) {
+    sessionStorage.setItem('user', JSON.stringify(updatedUser));
+    return;
+  }
+
+  localStorage.setItem('user', JSON.stringify(updatedUser));
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(getStoredAuth().token);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
+      const { token: storedToken, user: storedUser } = getStoredAuth();
 
       if (!storedToken) {
         setUser(null);
@@ -26,7 +73,7 @@ export const AuthProvider = ({ children }) => {
           setUser(parsedUser);
           setToken(storedToken);
         } catch (error) {
-          localStorage.removeItem('user');
+          clearStoredAuth();
         }
       }
 
@@ -35,15 +82,14 @@ export const AuthProvider = ({ children }) => {
         if (res && res.success && res.data) {
           setUser(res.data);
           setToken(storedToken);
-          localStorage.setItem('user', JSON.stringify(res.data));
+          persistUserOnly(res.data);
           return;
         }
 
         throw new Error('Session invalid');
       } catch (err) {
         console.warn('Session verification failed:', err);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearStoredAuth();
         setUser(null);
         setToken(null);
       } finally {
@@ -60,8 +106,7 @@ export const AuthProvider = ({ children }) => {
       const { token: jwtToken, ...userData } = res.data;
       setToken(jwtToken);
       setUser(userData);
-      localStorage.setItem('token', jwtToken);
-      localStorage.setItem('user', JSON.stringify(userData));
+      persistAuth(jwtToken, userData, rememberMe);
       return userData;
     }
     throw new Error(res.message || 'Login failed');
@@ -73,8 +118,7 @@ export const AuthProvider = ({ children }) => {
       const { token: jwtToken, ...userInfo } = res.data;
       setToken(jwtToken);
       setUser(userInfo);
-      localStorage.setItem('token', jwtToken);
-      localStorage.setItem('user', JSON.stringify(userInfo));
+      persistAuth(jwtToken, userInfo, true);
       return userInfo;
     }
     throw new Error(res.message || 'Registration failed');
@@ -84,10 +128,9 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.logout();
     } catch (e) {
-      console.warn("Logout error:", e);
+      console.warn('Logout error:', e);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearStoredAuth();
       setUser(null);
       setToken(null);
     }
@@ -95,11 +138,12 @@ export const AuthProvider = ({ children }) => {
 
   const updateCurrentUser = (updatedUser) => {
     setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+    persistUserOnly(updatedUser);
   };
 
   const refreshUser = async () => {
-    if (!localStorage.getItem('token')) {
+    const { token: storedToken } = getStoredAuth();
+    if (!storedToken) {
       setUser(null);
       setToken(null);
       return null;
@@ -109,7 +153,7 @@ export const AuthProvider = ({ children }) => {
       const res = await authService.getCurrentUser();
       if (res.success && res.data) {
         setUser(res.data);
-        localStorage.setItem('user', JSON.stringify(res.data));
+        persistUserOnly(res.data);
         return res.data;
       }
     } catch (e) {
