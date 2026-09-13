@@ -199,7 +199,7 @@ public class UserDao {
     }
 
     public List<User> findPendingStudentUsers() {
-        String sql = BASE_SELECT + "WHERE u.role = 'STUDENT' AND u.student_id IS NULL ORDER BY u.created_at DESC";
+        String sql = BASE_SELECT + "WHERE u.status = 'PENDING' AND u.role IN ('STUDENT', 'STAFF') ORDER BY u.created_at DESC";
         return jdbcTemplate.query(sql, userRowMapper);
     }
 

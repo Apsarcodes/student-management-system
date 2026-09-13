@@ -42,7 +42,7 @@ export const UserList = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  // Pending Student Requests
+  // Pending approval queue (student + staff)
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
 
@@ -614,7 +614,7 @@ export const UserList = () => {
           <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-900 flex items-start space-x-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold">Student Registration Requests:</span> When a student creates an account online, their registration appears here for administrative approval. Click <strong className="text-emerald-800">"Approve"</strong> or <strong className="text-indigo-800">"Quick Approve"</strong> to enroll the student and automatically activate their portal access.
+              <span className="font-bold">Pending Approvals:</span> Newly registered faculty/staff and student accounts appear here for administrative review. Click <strong className="text-emerald-800">"Approve"</strong> or <strong className="text-indigo-800">"Quick Approve"</strong> to complete the activation workflow.
             </div>
           </div>
 

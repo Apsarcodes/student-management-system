@@ -125,10 +125,10 @@ export const Dashboard = () => {
             </div>
             <div>
               <h4 className="text-sm font-bold text-amber-950">
-                {pendingRequestsCount} Student Account Request{pendingRequestsCount > 1 ? 's' : ''} Awaiting Review
+                {pendingRequestsCount} Pending Approval{pendingRequestsCount > 1 ? 's' : ''} Awaiting Review
               </h4>
               <p className="text-xs text-amber-800">
-                Newly registered students are waiting for administrative review and official student record linking.
+                New student and staff registrations are waiting for administrative review and activation.
               </p>
             </div>
           </div>

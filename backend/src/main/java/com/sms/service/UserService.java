@@ -125,19 +125,22 @@ public class UserService {
 
         for (User u : pendingUsers) {
             u.setPasswordHash(null);
-            // Smart matching: find unlinked student with matching email or name
             Student match = null;
-            for (Student s : allUnlinked) {
-                if (s.getEmail() != null && s.getEmail().equalsIgnoreCase(u.getEmail())) {
-                    match = s;
-                    break;
-                }
-                String studentFullName = (s.getFirstName() + " " + s.getLastName()).trim().toLowerCase();
-                if (studentFullName.equalsIgnoreCase(u.getFullName().trim().toLowerCase())) {
-                    match = s;
-                    break;
+
+            if ("STUDENT".equalsIgnoreCase(u.getRole())) {
+                for (Student s : allUnlinked) {
+                    if (s.getEmail() != null && s.getEmail().equalsIgnoreCase(u.getEmail())) {
+                        match = s;
+                        break;
+                    }
+                    String studentFullName = (s.getFirstName() + " " + s.getLastName()).trim().toLowerCase();
+                    if (studentFullName.equalsIgnoreCase(u.getFullName().trim().toLowerCase())) {
+                        match = s;
+                        break;
+                    }
                 }
             }
+
             results.add(new PendingStudentResponse(u, match));
         }
         return results;
