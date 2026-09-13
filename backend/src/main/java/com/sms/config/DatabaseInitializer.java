@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     @Value("${app.seed.admin-password:#{null}}")
     private String adminPassword;
@@ -27,13 +29,15 @@ public class DatabaseInitializer implements CommandLineRunner {
     @Value("${app.seed.student-password:#{null}}")
     private String studentPassword;
 
-    public DatabaseInitializer(UserDao userDao, PasswordEncoder passwordEncoder) {
+    public DatabaseInitializer(UserDao userDao, PasswordEncoder passwordEncoder, JdbcTemplate jdbcTemplate) {
         this.userDao = userDao;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void run(String... args) {
+        ensureOtpVerificationTable();
         log.info("Checking and initializing system users credentials...");
 
         // Ensure Admin user exists with valid BCrypt hash
@@ -123,6 +127,27 @@ public class DatabaseInitializer implements CommandLineRunner {
         old2.ifPresent(u -> userDao.deleteById(u.getId()));
 
         log.info("System credentials initialization completed for Admin, Faculty, and Student.");
+    }
+
+    private void ensureOtpVerificationTable() {
+        String sql = """
+            CREATE TABLE IF NOT EXISTS otp_verifications (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(100) NOT NULL,
+                purpose VARCHAR(40) NOT NULL,
+                otp_hash VARCHAR(255) NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                attempts INT NOT NULL DEFAULT 0,
+                last_sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                verified BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_otp_email_purpose (email, purpose),
+                INDEX idx_otp_expires_at (expires_at)
+            )
+            """;
+
+        jdbcTemplate.execute(sql);
+        log.info("Ensured otp_verifications table exists.");
     }
 
     private String generateDefaultPassword() {
