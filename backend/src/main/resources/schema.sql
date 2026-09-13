@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS students;
 DROP TABLE IF EXISTS subjects;
 DROP TABLE IF EXISTS courses;
 DROP TABLE IF EXISTS departments;
+DROP TABLE IF EXISTS otp_verifications;
 DROP TABLE IF EXISTS users;
 
 -- ----------------------------------------------------------
@@ -35,7 +36,24 @@ CREATE INDEX idx_users_student_id ON users(student_id);
 CREATE INDEX idx_users_department ON users(department_id);
 
 -- ----------------------------------------------------------
--- 2. DEPARTMENTS TABLE
+-- 2. OTP VERIFICATIONS TABLE
+-- ----------------------------------------------------------
+CREATE TABLE otp_verifications (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL,
+    purpose VARCHAR(30) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    attempts INT NOT NULL DEFAULT 0,
+    last_sent_at TIMESTAMP NULL,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_otp_email_purpose (email, purpose),
+    INDEX idx_otp_expires_at (expires_at)
+);
+
+-- ----------------------------------------------------------
+-- 3. DEPARTMENTS TABLE
 -- ----------------------------------------------------------
 CREATE TABLE departments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

@@ -38,7 +38,7 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const currentPath = window.location.pathname;
-    const publicPaths = ['/login', '/register', '/unauthorized'];
+    const publicPaths = ['/login', '/register', '/forgot-password', '/verify-otp', '/reset-password', '/unauthorized'];
 
     if (status === 401) {
       clearAuthStorage();

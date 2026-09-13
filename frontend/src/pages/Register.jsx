@@ -119,13 +119,14 @@ export const Register = () => {
       };
 
       const newUser = await register(payload);
-      success(`Welcome to EduTrack Pro, ${newUser.fullName}!`);
-
-      if (newUser.role === 'STUDENT') {
-        navigate('/student/dashboard', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      success('Registration successful. Please verify your email.');
+      navigate('/verify-otp', {
+        replace: true,
+        state: {
+          email: payload.email,
+          purpose: 'REGISTRATION',
+        },
+      });
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';

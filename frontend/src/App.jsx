@@ -20,6 +20,9 @@ import MarksManagement from './pages/marks/MarksManagement';
 import Reports from './pages/reports/Reports';
 import UserList from './pages/users/UserList';
 import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
+import VerifyOtp from './pages/VerifyOtp';
+import ResetPassword from './pages/ResetPassword';
 import Unauthorized from './pages/Unauthorized';
 import NotFound from './pages/NotFound';
 
@@ -52,6 +55,9 @@ export const App = () => {
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected dashboard routes */}
             <Route

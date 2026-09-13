@@ -115,10 +115,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     const res = await authService.register(userData);
     if (res.success && res.data) {
-      const { token: jwtToken, ...userInfo } = res.data;
-      setToken(jwtToken);
-      setUser(userInfo);
-      persistAuth(jwtToken, userInfo, true);
+      const userInfo = res.data;
+      setUser(null);
+      setToken(null);
+      clearStoredAuth();
       return userInfo;
     }
     throw new Error(res.message || 'Registration failed');

@@ -1,11 +1,7 @@
 package com.sms.controller;
 
 import com.sms.dao.DepartmentDao;
-import com.sms.dto.ApiResponse;
-import com.sms.dto.AuthResponse;
-import com.sms.dto.ChangePasswordRequest;
-import com.sms.dto.LoginRequest;
-import com.sms.dto.RegisterRequest;
+import com.sms.dto.*;
 import com.sms.model.Department;
 import com.sms.model.User;
 import com.sms.service.AuthService;
@@ -35,10 +31,38 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = authService.register(request);
+    public ResponseEntity<ApiResponse<User>> register(@Valid @RequestBody RegisterRequest request) {
+        User response = authService.register(request);
+        response.setPasswordHash(null);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Account registered successfully", response));
+                .body(ApiResponse.success("Registration successful. Please verify your email to activate your account.", response));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("If an account exists for that email, a reset code has been sent."));
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<ApiResponse<Void>> resendOtp(
+            @RequestParam String purpose,
+            @Valid @RequestBody ForgotPasswordRequest request
+    ) {
+        authService.resendOtp(request.getEmail(), purpose);
+        return ResponseEntity.ok(ApiResponse.success("A new OTP has been sent."));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        Map<String, Object> result = authService.verifyOtp(request.getEmail(), request.getOtp(), request.getPurpose());
+        return ResponseEntity.ok(ApiResponse.success(result.get("message").toString(), result));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getEmail(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password reset successful. Please log in with your new password."));
     }
 
     @GetMapping("/departments")

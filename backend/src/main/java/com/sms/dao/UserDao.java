@@ -163,6 +163,11 @@ public class UserDao {
                 user.getId());
     }
 
+    public void activateUser(Long userId) {
+        String sql = "UPDATE users SET status = 'ACTIVE', updated_at = ? WHERE id = ?";
+        jdbcTemplate.update(sql, Timestamp.valueOf(LocalDateTime.now()), userId);
+    }
+
     public void updatePassword(Long userId, String passwordHash) {
         String sql = "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?";
         jdbcTemplate.update(sql, passwordHash, Timestamp.valueOf(LocalDateTime.now()), userId);

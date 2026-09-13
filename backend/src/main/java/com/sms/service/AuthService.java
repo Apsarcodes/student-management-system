@@ -18,21 +18,26 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class AuthService {
     private final UserDao userDao;
     private final DepartmentDao departmentDao;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final OtpService otpService;
 
-    public AuthService(UserDao userDao, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+    public AuthService(UserDao userDao, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, OtpService otpService) {
         this.userDao = userDao;
         this.departmentDao = departmentDao;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.otpService = otpService;
     }
 
-    public AuthResponse register(RegisterRequest request) {
+    public User register(RegisterRequest request) {
         if (userDao.existsByUsername(request.getUsername(), null)) {
             throw new DuplicateResourceException("Username '" + request.getUsername() + "' is already taken");
         }
@@ -66,30 +71,73 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName().trim());
         user.setRole(role);
-        user.setStatus("ACTIVE");
+        user.setStatus("PENDING");
         user.setDepartmentId(departmentId);
         user.setStudentId(request.getStudentId());
 
         User saved = userDao.save(user);
-
-        // Fetch user with joined department name & code
         User loaded = userDao.findById(saved.getId()).orElse(saved);
 
-        CustomUserDetails userDetails = new CustomUserDetails(loaded);
-        String token = jwtUtil.generateToken(userDetails, false);
+        otpService.createAndSendOtp(loaded.getEmail(), "REGISTRATION");
+        return loaded;
+    }
 
-        return new AuthResponse(
-                token,
-                loaded.getId(),
-                loaded.getUsername(),
-                loaded.getEmail(),
-                loaded.getFullName(),
-                loaded.getRole(),
-                loaded.getStudentId(),
-                loaded.getDepartmentId(),
-                loaded.getDepartmentName(),
-                loaded.getDepartmentCode()
-        );
+    public void forgotPassword(String email) {
+        String normalizedEmail = email == null ? null : email.trim().toLowerCase();
+        if (normalizedEmail == null || normalizedEmail.isBlank()) {
+            throw new BadRequestException("Email is required.");
+        }
+
+        userDao.findByEmail(normalizedEmail).ifPresent(user -> {
+            otpService.createAndSendOtp(user.getEmail(), "PASSWORD_RESET");
+        });
+    }
+
+    public void resendOtp(String email, String purpose) {
+        String normalizedEmail = email == null ? "" : email.trim().toLowerCase();
+        if (normalizedEmail.isBlank()) {
+            throw new BadRequestException("Email is required.");
+        }
+
+        userDao.findByEmail(normalizedEmail).ifPresent(user -> otpService.resendOtp(user.getEmail(), purpose));
+    }
+
+    public Map<String, Object> verifyOtp(String email, String otp, String purpose) {
+        otpService.verifyOtp(email, otp, purpose);
+        Map<String, Object> result = new HashMap<>();
+        result.put("email", email.trim().toLowerCase());
+        result.put("purpose", purpose.toUpperCase());
+        if ("REGISTRATION".equalsIgnoreCase(purpose)) {
+            User user = userDao.findByEmail(email.trim().toLowerCase())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+            user.setStatus("ACTIVE");
+            userDao.update(user);
+            otpService.deleteOtp(email, purpose);
+            result.put("message", "Registration verified successfully. You can now log in.");
+            return result;
+        }
+
+        otpService.requireVerifiedOtp(email, purpose);
+        result.put("message", "OTP verified successfully. Please reset your password.");
+        return result;
+    }
+
+    public void resetPassword(String email, String newPassword) {
+        String normalizedEmail = email == null ? null : email.trim().toLowerCase();
+        if (normalizedEmail == null || normalizedEmail.isBlank()) {
+            throw new BadRequestException("Email is required.");
+        }
+
+        otpService.requireVerifiedOtp(normalizedEmail, "PASSWORD_RESET");
+        User user = userDao.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + normalizedEmail));
+
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new BadRequestException("Password must be at least 6 characters");
+        }
+
+        userDao.updatePassword(user.getId(), passwordEncoder.encode(newPassword));
+        otpService.deleteOtp(normalizedEmail, "PASSWORD_RESET");
     }
 
     public AuthResponse login(LoginRequest request) {

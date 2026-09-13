@@ -178,6 +178,10 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/api/auth/register",
+                                "/api/auth/forgot-password",
+                                "/api/auth/resend-otp",
+                                "/api/auth/verify-otp",
+                                "/api/auth/reset-password",
                                 "/api/auth/departments"
                         ).permitAll()
 

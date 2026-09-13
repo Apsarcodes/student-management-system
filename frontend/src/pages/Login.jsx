@@ -180,6 +180,11 @@ export const Login = () => {
 
           <div className="mt-5 text-center">
             <p className="text-sm text-slate-600">
+              <Link to="/forgot-password" className="font-semibold text-brand-600 hover:text-brand-700 hover:underline">
+                Forgot password?
+              </Link>
+            </p>
+            <p className="text-sm text-slate-600 mt-2">
               Don't have an account?{' '}
               <Link to="/register" className="font-semibold text-brand-600 hover:text-brand-700 hover:underline">
                 Create an account

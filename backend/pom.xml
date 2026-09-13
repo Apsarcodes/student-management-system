@@ -70,6 +70,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Resend Email SDK -->
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>4.21.1</version>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
