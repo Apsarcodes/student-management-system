@@ -13,25 +13,42 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
 
-      if (storedToken && storedUser) {
+      if (!storedToken) {
+        setUser(null);
+        setToken(null);
+        setLoading(false);
+        return;
+      }
+
+      if (storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
           setToken(storedToken);
-          // Verify with backend silently
-          const res = await authService.getCurrentUser();
-          if (res && res.success && res.data) {
-            setUser(res.data);
-            localStorage.setItem('user', JSON.stringify(res.data));
-          }
-        } catch (err) {
-          console.error("Session verification failed:", err);
-          localStorage.removeItem('token');
+        } catch (error) {
           localStorage.removeItem('user');
-          setUser(null);
-          setToken(null);
         }
       }
-      setLoading(false);
+
+      try {
+        const res = await authService.getCurrentUser();
+        if (res && res.success && res.data) {
+          setUser(res.data);
+          setToken(storedToken);
+          localStorage.setItem('user', JSON.stringify(res.data));
+          return;
+        }
+
+        throw new Error('Session invalid');
+      } catch (err) {
+        console.warn('Session verification failed:', err);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        setToken(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     initAuth();
@@ -82,6 +99,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const refreshUser = async () => {
+    if (!localStorage.getItem('token')) {
+      setUser(null);
+      setToken(null);
+      return null;
+    }
+
     try {
       const res = await authService.getCurrentUser();
       if (res.success && res.data) {

@@ -25,14 +25,22 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Clear invalid credentials and notify auth flow
+    const status = error.response?.status;
+    const currentPath = window.location.pathname;
+    const publicPaths = ['/login', '/register', '/unauthorized'];
+
+    if (status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
+      if (!publicPaths.includes(currentPath)) {
         window.location.href = '/login';
       }
     }
+
+    if (status === 403 && !publicPaths.includes(currentPath)) {
+      window.location.href = '/unauthorized';
+    }
+
     return Promise.reject(error);
   }
 );

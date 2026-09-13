@@ -44,15 +44,19 @@ export const Register = () => {
       try {
         setLoadingDepts(true);
         const res = await authService.getPublicDepartments();
-        if (res.success && res.data) {
-          setDepartments(res.data);
-          // Default to first department if available
-          if (res.data.length > 0) {
-            setFormData((prev) => ({ ...prev, departmentId: res.data[0].id.toString() }));
-          }
+        const deptList = Array.isArray(res?.data) ? res.data : [];
+
+        setDepartments(deptList);
+
+        if (deptList.length > 0) {
+          setFormData((prev) => ({ ...prev, departmentId: deptList[0].id.toString() }));
+        } else {
+          setFormData((prev) => ({ ...prev, departmentId: '' }));
         }
       } catch (err) {
         console.error('Failed to load departments:', err);
+        setDepartments([]);
+        setFormData((prev) => ({ ...prev, departmentId: '' }));
       } finally {
         setLoadingDepts(false);
       }
@@ -249,20 +253,31 @@ export const Register = () => {
                   name="departmentId"
                   value={formData.departmentId}
                   onChange={handleChange}
-                  disabled={loadingDepts}
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors"
+                  disabled={loadingDepts || departments.length === 0}
+                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loadingDepts ? (
                     <option value="">Loading departments...</option>
+                  ) : departments.length === 0 ? (
+                    <option value="">No departments available</option>
                   ) : (
-                    departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.code} • {d.name}
-                      </option>
-                    ))
+                    <>
+                      <option value="">Select a department</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.code} • {d.name}
+                        </option>
+                      ))}
+                    </>
                   )}
                 </select>
               </div>
+
+              {departments.length === 0 && !loadingDepts && formData.role === 'STAFF' && (
+                <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
+                  No departments are currently available. Please contact the administrator to add a department first.
+                </div>
+              )}
 
               {/* Department Isolation Context Info */}
               {formData.role === 'STAFF' && selectedDeptObj && (

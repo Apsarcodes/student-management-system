@@ -39,21 +39,21 @@ export const DashboardLayout = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar navigation */}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         pendingCount={pendingCount}
       />
 
-      {/* Main app body */}
       <div className="flex-1 flex flex-col lg:pl-72 min-w-0">
         <Header
           onToggleSidebar={() => setSidebarOpen(true)}
           pendingCount={pendingCount}
         />
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
-          <Outlet />
+        <main className="flex-1 w-full max-w-7xl mx-auto px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
+          <div className="w-full min-w-0">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
