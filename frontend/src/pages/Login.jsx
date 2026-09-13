@@ -103,7 +103,7 @@ export const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="form-label mb-1.5">
                 Email or Username
               </label>
               <div className="relative rounded-xl shadow-2xs">
@@ -117,13 +117,13 @@ export const Login = () => {
                   onChange={handleChange}
                   required
                   placeholder="admin@university.edu"
-                  className="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors"
+                  className="form-input pl-10 pr-4"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="form-label mb-1.5">
                 Password
               </label>
               <div className="relative rounded-xl shadow-2xs">
@@ -137,7 +137,7 @@ export const Login = () => {
                   onChange={handleChange}
                   required
                   placeholder="••••••••"
-                  className="block w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors"
+                  className="form-input pl-10 pr-10"
                 />
                 <button
                   type="button"

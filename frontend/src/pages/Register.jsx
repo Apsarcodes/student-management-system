@@ -161,7 +161,7 @@ export const Register = () => {
           <form className="space-y-5" onSubmit={handleSubmit}>
             {/* Role Selection Tabs */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+              <label className="form-label mb-2">
                 I am registering as:
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -195,7 +195,7 @@ export const Register = () => {
 
             {/* Full Name */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="form-label mb-1.5">
                 Full Name *
               </label>
               <div className="relative">
@@ -206,7 +206,7 @@ export const Register = () => {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder={formData.role === 'STAFF' ? 'e.g. Dr. Rajesh Kumar' : 'e.g. Alex Morgan'}
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors"
+                  className="form-input pl-10 pr-3.5"
                 />
               </div>
             </div>
@@ -214,7 +214,7 @@ export const Register = () => {
             {/* Username & Email in a 2-col row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="form-label mb-1.5">
                   Username *
                 </label>
                 <input
@@ -223,12 +223,12 @@ export const Register = () => {
                   value={formData.username}
                   onChange={handleChange}
                   placeholder="e.g. rajesh_kumar"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors"
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="form-label mb-1.5">
                   Email Address *
                 </label>
                 <input
@@ -237,14 +237,14 @@ export const Register = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="e.g. user@university.edu"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors"
+                  className="form-input"
                 />
               </div>
             </div>
 
             {/* Department Selection */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="form-label mb-1.5">
                 {formData.role === 'STAFF' ? 'Assigned Department *' : 'Department'}
               </label>
               <div className="relative">
@@ -254,7 +254,7 @@ export const Register = () => {
                   value={formData.departmentId}
                   onChange={handleChange}
                   disabled={loadingDepts || departments.length === 0}
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="form-select pl-10 pr-3.5 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loadingDepts ? (
                     <option value="">Loading departments...</option>
@@ -274,14 +274,14 @@ export const Register = () => {
               </div>
 
               {departments.length === 0 && !loadingDepts && formData.role === 'STAFF' && (
-                <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
+                <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm font-medium">
                   No departments are currently available. Please contact the administrator to add a department first.
                 </div>
               )}
 
               {/* Department Isolation Context Info */}
               {formData.role === 'STAFF' && selectedDeptObj && (
-                <div className="mt-2.5 p-3 rounded-xl bg-brand-50/70 border border-brand-200/80 flex items-start space-x-2.5 text-xs text-brand-900">
+                <div className="mt-2.5 p-3 rounded-xl bg-brand-50/70 border border-brand-200/80 flex items-start space-x-2.5 text-xs sm:text-sm text-brand-900">
                   <ShieldCheck className="w-4 h-4 text-brand-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold">Department Isolation:</span> As faculty in{' '}
@@ -295,7 +295,7 @@ export const Register = () => {
             {/* Password & Confirm Password */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="form-label mb-1.5">
                   Password *
                 </label>
                 <div className="relative">
@@ -305,7 +305,7 @@ export const Register = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="••••••••"
-                    className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors"
+                    className="form-input pr-10"
                   />
                   <button
                     type="button"
@@ -318,7 +318,7 @@ export const Register = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="form-label mb-1.5">
                   Confirm Password *
                 </label>
                 <input
@@ -327,7 +327,7 @@ export const Register = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500 focus:bg-white transition-colors"
+                  className="form-input"
                 />
               </div>
             </div>
