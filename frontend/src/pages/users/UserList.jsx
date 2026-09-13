@@ -405,17 +405,26 @@ export const UserList = () => {
     );
   });
 
+  const getDisplayRole = (role) => {
+    const normalized = (role || '').toUpperCase();
+
+    if (normalized === 'ADMIN') return { label: 'ADMIN', variant: 'admin' };
+    if (normalized === 'STUDENT') return { label: 'STUDENT', variant: 'student' };
+    if (normalized === 'FACULTY') return { label: 'FACULTY', variant: 'faculty' };
+    return { label: 'STAFF', variant: 'staff' };
+  };
+
   const columns = [
     {
       header: 'Full Name',
       accessor: 'fullName',
       render: (u) => (
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs">
-            {u.fullName?.charAt(0)}
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0">
+            {u.fullName?.charAt(0) || 'U'}
           </div>
-          <div>
-            <span className="font-semibold text-slate-900 block">{u.fullName}</span>
+          <div className="min-w-0">
+            <span className="font-semibold text-slate-900 block truncate">{u.fullName}</span>
             <span className="text-xs text-slate-400 font-mono">@{u.username}</span>
           </div>
         </div>
@@ -424,20 +433,19 @@ export const UserList = () => {
     {
       header: 'Email',
       accessor: 'email',
-      render: (u) => <span className="text-xs text-slate-600">{u.email}</span>,
+      render: (u) => <span className="text-xs text-slate-600 break-all">{u.email}</span>,
     },
     {
       header: 'System Role',
       accessor: 'role',
-      render: (u) => (
-        <div className="flex items-center space-x-1.5">
-          {u.role === 'ADMIN' ? (
-            <Badge variant="admin">ADMIN</Badge>
-          ) : (
-            <Badge variant="staff">STAFF</Badge>
-          )}
-        </div>
-      ),
+      render: (u) => {
+        const displayRole = getDisplayRole(u.role);
+        return (
+          <div className="flex items-center space-x-1.5">
+            <Badge variant={displayRole.variant}>{displayRole.label}</Badge>
+          </div>
+        );
+      },
     },
     {
       header: 'Department Scope',

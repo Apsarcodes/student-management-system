@@ -219,11 +219,11 @@ public class UserService {
             }
         }
 
-        // Parse name into first and last name
+        // Parse name into first and last name without forcing an artificial last-name suffix
         String fullName = user.getFullName() != null ? user.getFullName().trim() : "Student";
         String[] parts = fullName.split("\\s+");
         String firstName = parts.length > 0 && !parts[0].isEmpty() ? parts[0] : "Student";
-        String lastName = parts.length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length)) : "Enrolled";
+        String lastName = parts.length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length)) : "";
 
         // Auto-generate unique student ID (roll number)
         int year = java.time.LocalDate.now().getYear();

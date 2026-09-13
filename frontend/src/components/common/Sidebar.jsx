@@ -143,9 +143,13 @@ export const Sidebar = ({ isOpen, onClose, pendingCount = 0 }) => {
                   <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
                 )}
                 <span className="text-xs text-slate-500 font-medium capitalize">
-                  {user?.role === 'STAFF'
-                    ? (user?.departmentCode ? `Faculty • ${user.departmentCode}` : 'Faculty')
-                    : user?.role?.toLowerCase() || 'user'}
+                  {user?.role === 'ADMIN'
+                    ? 'admin'
+                    : user?.role === 'STUDENT'
+                      ? 'student'
+                      : user?.role === 'STAFF'
+                        ? (user?.departmentCode ? `faculty • ${user.departmentCode}` : 'faculty')
+                        : (user?.role || 'user').toLowerCase()}
                 </span>
               </div>
             </div>
